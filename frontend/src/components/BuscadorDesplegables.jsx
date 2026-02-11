@@ -1,0 +1,76 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+export function BuscadorDesplegables() {
+    //UseState para guardar la provincia que selecciona el usuario
+    const [provinciaSeleccionada, setProvinciaSeleccionada] = useState("");
+
+    //UseState para guardar el municipio seleccionado
+    const [municipioSeleccionado, setMunicipioSeleccionado] = useState("");
+
+    //Listas de provincias y municipios que van a aparecer en los desplegables
+    const [listaProvincias, setListaProvincias] = useState([]);
+    const [listaMunicipios, setListaMunicipios] = useState([]);
+
+    //Hook de React Router
+    const navigate = useNavigate();
+
+    //Cargar las provincias desde el archivo provincias.json
+    useEffect(() => {
+        import("../provincias.json")
+        .then((datosProvincias) => {setListaProvincias(datosProvincias.default);})
+        .catch(() => {alert("Error al cargar las provincias");});
+    }, []);
+
+    //Cargar los municipios cuando cambia la provincia seleccionada
+    useEffect(() => {
+        if(!provinciaSeleccionada) {
+            setMunicipiosLista([]);
+            return;
+        }
+
+        //Obtener los municipios de esa provincia
+        fetch(`http://localhost:3000/api/provincia/${provinciaSeleccionada}/municipios`)
+            .then((res => res.json)) 
+            .then((data) => {
+                if(data.success) {
+                    //Guardar los municipios
+                    setMunicipiosLista(data.municipios);
+                }
+                else {
+                    alert("No se han podido cargar los municipios");
+                }
+            });
+    }, [provinciaSeleccionada]);
+
+    //Función cuando el usuario pulsa "Aceptar"
+    function busqueda() {
+        if(!municipioSeleccionado) {
+            alert("Debe seleccionar un municipio");
+            return;
+        }
+        //Ir a la página de predicción por días enviando el id del municipio
+        navigate(`/prediccion-dias?id=${municipioSeleccionado}`);
+    }
+
+    return (
+        <div>
+            <h3>Búsqueda por provincia y municipio</h3>
+            <select value={provinciaSeleccionada} onChange={(e) => setProvinciaSeleccionada(e.target.value)}>
+                <option value="">Seleccione la provincia</option>
+                {/*Rellenar el desplegable con las provincias*/}
+                {listaProvincias.map((prov) => (
+                    <option key={prov.codigo} value={prov.codigo}>{prov.nombre}</option>
+                ))}
+            </select>
+            <select value={municipioSeleccionado} onChange={(e) => setMunicipioSeleccionado(e.target.value)}>
+                <option value="">Seleccione el municipio</option>
+                {/*Rellenar el desplegable con los municipios*/}
+                {listaMunicipios.map((mun) => (
+                    <option key={mun.id} vale={mun.id}>{mun.nombre}</option>
+                ))}
+            </select>
+            <button onClick={busqueda}>Aceptar</button>
+        </div>
+    );
+}
