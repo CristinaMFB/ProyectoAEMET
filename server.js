@@ -16,7 +16,8 @@ app.get('/', (req, res) => {
   res.json({
     mensaje: 'Bienvenido a la API Backend del proyecto de la AEMET de DWEC',
     endpoints: {
-      '/api/cp/:codigoPostal': 'Buscar un municipio por código postal'
+      '/api/cp/:codigoPostal': 'Buscar un municipio por código postal',
+      '/api/municipio/nombre/:nombre': 'Busca un municipio por su nombre'
     }
   });
 });
@@ -221,6 +222,46 @@ app.get('/api/cp/:codigoPostal', async (req, res) => {
     });
   }
 });
+
+
+//ENDPOINT: Buscar municipio por nombre
+app.get('/api/municipio/nombre/:nombre', async (req, res) => {
+  try {
+    //Paso el nombre introducido por el usuario a minúsculas
+    const nombreIntroducido = req.params.nombre.toLowerCase();
+
+    //Obtengo todos los municipios
+    const municipios = await obtenerMunicipios();
+
+    //Buscar el municipio que coincide con lo que ha escrito el usuario, me quedo únicamente con el primero que coincide y ahí se para la búsqueda
+    //No debe haber dos municipios con el mismo nombre exacto
+    const municipioEncontrado = municipios.find(m => m.nombre.toLowerCase() === nombreIntroducido);
+
+    if(!municipioEncontrado) {
+      return res.status(404).json({
+        success: false,
+        error: 'No existe ningún municipio con ese nombre'
+      });
+    }
+
+    res.json({
+      success: true,
+      municipio: {
+        id: municipioEncontrado.id.replace("id", ""),
+        nombre: municipioEncontrado.nombre
+      }
+    });
+  }
+  catch(error) {
+    console.error('Error al buscar municipio: ', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Error al buscar el municipio por nombre',
+      detalles: error.message
+    });
+  }
+});
+
 
 // Ruta para manejar endpoints no encontrados
 app.use((req, res) => {
