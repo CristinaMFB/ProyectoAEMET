@@ -25,7 +25,7 @@ export function BuscadorDesplegables() {
     //Cargar los municipios cuando cambia la provincia seleccionada
     useEffect(() => {
         if(!provinciaSeleccionada) {
-            setMunicipiosLista([]);
+            setListaMunicipios([]);
             return;
         }
 
@@ -35,7 +35,7 @@ export function BuscadorDesplegables() {
             .then((data) => {
                 if(data.success) {
                     //Guardar los municipios
-                    setMunicipiosLista(data.municipios);
+                    setListaMunicipios(data.municipios);
                 }
                 else {
                     alert("No se han podido cargar los municipios");

@@ -11,6 +11,16 @@ const PORT = process.env.PORT || 3000;
 app.use(cors()); // Permitir peticiones desde cualquier origen
 app.use(express.json()); // Parsear JSON en el body de las peticiones
 
+//RUTA PRINCIPAL
+app.get('/', (req, res) => {
+  res.json({
+    mensaje: 'Bienvenido a la API Backend del proyecto de la AEMET de DWEC',
+    endpoints: {
+      '/api/cp/:codigoPostal': 'Buscar un municipio por código postal'
+    }
+  });
+});
+
 /*EJEMPLOS
 // Ruta principal de bienvenida
 app.get('/', (req, res) => {
@@ -144,6 +154,74 @@ app.get('/api/posts', async (req, res) => {
   }
 });
 */
+/*Función para obtener los municipios con el maestro de municipios de la AEMET*/
+async function obtenerMunicipios() {
+  try {
+    //Primera petición para obtener el JSON que contiene la URL real
+    const response1 = await fetch(`https://opendata.aemet.es/opendata/api/maestro/municipios?api_key=${process.env.AEMET_API_KEY}`);
+
+    if (!response1.ok) {
+      throw new Error(`Error HTTP en AEMET: ${response1.status}`);
+    }
+    //En la respuesta aparece la propiedad datos, que es la que contiene la URL de los municipios
+    const datosMunicipios = await response1.json();
+
+    //Segunda petición
+    const response2 = await fetch(datosMunicipios.datos);
+
+    if (!response2.ok) {
+      throw new Error(`Error al obtener municipios: ${response2.status}`);
+    }
+
+    //Devolver el array de municipios
+    return await response2.json();
+  }
+  catch (error) {
+    console.error("Error en función obtenerMunicipios: ", error.message);
+    throw error;
+  }
+}
+
+/*ENDPOINT para la búsqueda por código postal*/
+app.get('/api/cp/:codigoPostal', async (req, res) => {
+  try {
+    const codigoPostal = req.params.codigoPostal;
+
+    //Obtener los municipios
+    const municipios = await obtenerMunicipios();
+
+    //Buscar el municipio cuyo id_old coincida con el código postal
+    const municipioEncontrado = municipios.find(m => String(m.id_old) === codigoPostal);
+
+    if (!municipioEncontrado) {
+      return res.status(404).json({
+        success: false,
+        error: 'No existe ningún municipio con ese código postal'
+      });
+    }
+
+    //Solo necesito el id del municipio y el nombre
+    //El id tiene la forma "idXXXXX", pero solo quiero "XXXXX" ya que es lo que usa la API para hacer la búsqueda
+    //de la predicción por dias y por horas de cada municipio
+    res.json({
+      success: true,
+      municipio: {
+        id: municipioEncontrado.id.replace("id", ""),
+        nombre: municipioEncontrado.nombre
+      }
+    });
+
+  }
+  catch (error) {
+    console.error('Error al buscar por código postal: ', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Error al buscar el municipio por código postal',
+      detalles: error.message
+    });
+  }
+});
+
 // Ruta para manejar endpoints no encontrados
 app.use((req, res) => {
   res.status(404).json({
