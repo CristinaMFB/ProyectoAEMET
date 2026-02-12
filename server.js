@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
+//Importar archivo provincias.js
+const provincias = require('./provincias');
+
 // Crear aplicación Express
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +20,8 @@ app.get('/', (req, res) => {
     mensaje: 'Bienvenido a la API Backend del proyecto de la AEMET de DWEC',
     endpoints: {
       '/api/cp/:codigoPostal': 'Buscar un municipio por código postal',
-      '/api/municipio/nombre/:nombre': 'Busca un municipio por su nombre'
+      '/api/municipio/nombre/:nombre': 'Busca un municipio por su nombre',
+      '/api/provincia/:codigo/municipios': 'Obtiene los municipios de una provincia'
     }
   });
 });
@@ -262,6 +266,51 @@ app.get('/api/municipio/nombre/:nombre', async (req, res) => {
   }
 });
 
+
+//ENDPOINT: Obtener los municipios de una provincia
+app.get('/api/provincia/:codigo/municipios', async (req, res) => {
+  try {
+    const codigoProvincia = req.params.codigo;
+
+    //Tengo que comprobar que el código de provincia existe en mi archivo provincias.js. Si no existe, devuelvo un error
+    if(!provincias[codigoProvincia]) {
+      return res.status(400).json({
+        success: false,
+        error: 'Código de provincia no válido'
+      });
+    }
+    //Llamo a la función obtenerMunicipios
+    const municipios = await obtenerMunicipios();
+
+    //Filtro los municipios que pertenecen a esa provincia y cojo únicamente el id y el nombre, que es lo que me hace falta para rellenar el desplegable
+    const municipiosProvincia = municipios
+      .filter(m => {
+        const idOld = String(m.id_old);
+        return idOld.startsWith(codigoProvincia);
+      })
+      .map(m => ({
+        id: m.id.replace("id", ""),
+        nombre: m.nombre
+      }));
+
+    //Devuelvo la información
+    res.json({
+      success: true,
+      provincia: provincias[codigoProvincia],
+      codigoProvincia,
+      total: municipiosProvincia.length,
+      municipios: municipiosProvincia
+    });
+  }
+  catch(error) {
+    console.error('Error al obtener municipios: ', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Error al obtener los municipios de la provincia',
+      detalles: error.message
+    });
+  }
+});
 
 // Ruta para manejar endpoints no encontrados
 app.use((req, res) => {
