@@ -28,7 +28,8 @@ app.get('/', (req, res) => {
     endpoints: {
       '/api/municipio/nombre/:nombre': 'Busca un municipio por su nombre',
       '/api/provincia/:codigo/municipios': 'Obtiene los municipios de una provincia',
-      '/api/prediccion/:idMunicipio': 'Obtiene la predicción diaria de un municipio'
+      '/api/prediccion/:idMunicipio': 'Obtiene la predicción diaria de un municipio',
+      '/api/prediccion-horas/:idMunicipio': 'Obtiene la predicción por horas de un municipio'
     }
   });
 });
@@ -166,6 +167,75 @@ app.get('/api/prediccion/:idMunicipio', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Error al obtener la predicción diaria',
+      detalles: error.message
+    });
+  }
+});
+
+//ENDPOINT: Predicción por horas
+app.get('/api/prediccion-horas/:idMunicipio', async (req, res) => {
+  try {
+    const idMunicipio = req.params.idMunicipio;
+    
+    //Primera petición
+    const response1 = await fetch(`https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/horaria/${idMunicipio}?api_key=${process.env.AEMET_API_KEY}`);
+    
+    if(!response1.ok) {
+      throw new Error(`Error HTTP en AEMET: ${response1.status}`);
+    }
+    
+    const datos1 = await response1.json();
+
+    //Segunda petición
+    const response2 = await fetch(datos1.datos);
+
+    if(!response2.ok) {
+      throw new Error(`Error al obtener la predicción por horas: ${response2.status}`);
+    }
+
+    const datos2 = await response2.json();
+
+    const prediccion = datos2[0];
+
+    //La AEMET devuelve los datos separados por variable (estadoCielo, temperatura,...) y cada variable tiene un periodo que indica la hora.
+    //Necesito unir cada periodo para obtener todas las variables en el mismo periodo.
+
+    //Cada día tiene un bloque de horas
+    const dias = prediccion.prediccion.dia;
+
+    const horasFinal = dias.map(dia => {
+      //Formateo de la fecha para obtener XXXX-XX-XX. La AEMET devuelve la fecha así: 2026-02-13T20:11:12. Así que hay que dividir por la letra T y quedarnos solo con la parte de la izquierda que es la de la fecha
+      const fecha = dia.fecha.split("T")[0];
+      const horas = dia.estadoCielo.map(h => {
+        const periodo = h.periodo;
+        
+        return {
+          fecha,
+          hora: periodo,
+          estadoCielo: h.descripcion || "",
+          temperatura: dia.temperatura.find(t => t.periodo === periodo)?.value ?? "",
+          precipitacion: dia.precipitacion.find(p => periodo === periodo)?.value ?? "",
+          vientoDireccion: dia.vientoAndRachaMax.find(v => v.periodo === periodo)?.direccion?.[0] ?? "",
+          vientoVelocidad: dia.vientoAndRachaMax.fing(v => v.periodo === periodo)?.velocidad?.[0] ?? 0
+        };
+      });
+
+      return {fecha, horas};
+    });
+
+    res.json({
+      success: true,
+      municipio: prediccion.nombre,
+      idMunicipio,
+      dias: horasFinal
+    });
+  }
+
+  catch (error) {
+    console.error("Error al obtener predicción por horas: ", error.message);
+    res.status(500).json({
+      sucess: false,
+      error: "Error al obtener la predicción por horas",
       detalles: error.message
     });
   }
