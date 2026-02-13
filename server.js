@@ -6,6 +6,12 @@ require('dotenv').config();
 //Importar archivo provincias.js
 const provincias = require('./provincias');
 
+//Importar las funciones
+const obtenerMunicipios = require('./funciones/obtenerMunicipios');
+const obtenerPrediccionDiaria = require('./funciones/obtenerPrediccionDiaria');
+const calcularTemperaturaGeneral = require('./funciones/calcularTemperaturaGeneral');
+const calcularProbPrecipitacion = require('./funciones/calcularProbPrecipitacion');
+
 // Crear aplicación Express
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -159,33 +165,6 @@ app.get('/api/posts', async (req, res) => {
   }
 });
 */
-/*Función para obtener los municipios con el maestro de municipios de la AEMET*/
-async function obtenerMunicipios() {
-  try {
-    //Primera petición para obtener el JSON que contiene la URL real
-    const response1 = await fetch(`https://opendata.aemet.es/opendata/api/maestro/municipios?api_key=${process.env.AEMET_API_KEY}`);
-
-    if (!response1.ok) {
-      throw new Error(`Error HTTP en AEMET: ${response1.status}`);
-    }
-    //En la respuesta aparece la propiedad datos, que es la que contiene la URL de los municipios
-    const datosMunicipios = await response1.json();
-
-    //Segunda petición
-    const response2 = await fetch(datosMunicipios.datos);
-
-    if (!response2.ok) {
-      throw new Error(`Error al obtener municipios: ${response2.status}`);
-    }
-
-    //Devolver el array de municipios
-    return await response2.json();
-  }
-  catch (error) {
-    console.error("Error en función obtenerMunicipios: ", error.message);
-    throw error;
-  }
-}
 
 /*ENDPOINT para la búsqueda por código postal*/
 app.get('/api/cp/:codigoPostal', async (req, res) => {
@@ -267,7 +246,7 @@ app.get('/api/municipio/nombre/:nombre', async (req, res) => {
 });
 
 
-//ENDPOINT: Obtener los municipios de una provincia
+//ENDPOINT: Municipios de una provincia
 app.get('/api/provincia/:codigo/municipios', async (req, res) => {
   try {
     const codigoProvincia = req.params.codigo;
@@ -318,6 +297,57 @@ app.use((req, res) => {
     success: false,
     error: 'Endpoint no encontrado'
   });
+});
+
+//ENDPOINT: Predicción diaria
+app.get('/api/prediccion/:idMunicipio', async (req, res) => {
+  try {
+    //Guardar el id del municipio
+    const idMunicipio = req.params.idMunicipio;
+
+    //Función ObtenerPrediccionDiaria
+    const prediccionDiaria = await obtenerPrediccionDiaria(idMunicipio);
+
+    //Nombre del municipio 
+    const nombreMunicipio = prediccionDiaria.nombre;
+
+    //Array de los días
+    const diasPrediccion = prediccionDiaria.prediccion.dia;
+
+
+    //Solo devuelvo los datos que voy a necesitar (fecha, estado del cielo (descripcion), probabilidad de precipitacion, temperatura máxima, temperatura mínima y viento
+    const prediccionDias = diasPrediccion.map(dia => {
+      const temperaturaGeneral = calcularTemperaturaGeneral(dia.temperatura);
+      const probabilidadPrecipitacion = calcularProbPrecipitacion(dia.probPrecipitacion);
+      const viento = calcularViento(dia.viento);
+
+      return {
+        fecha: dia.fecha,
+        //En estadoCielo, necesitamos el periodo 00-24 que es el que corresponde al día completo. Hay veces que este dato no está y no puedo hacer una media de una descripción, entonces si en el periodo 00-24 no hay descripción, lo dejo en blanco
+        estadoCielo: dia.estadoCielo[0]?.descripcion || "" ,        
+        tempGeneral,
+        temperaturaMax: dia.temperatura.maxima,
+        temperaturaMin: dia.temperatura.minima,
+        vientoDireccion: viento.direccion,
+        vientoVelocidad: viento.velocidad
+      };
+    });
+
+    res.json({
+      success: true,
+      municipio: nombreMunicipio,
+      idMunicipio,
+      dias: prediccionDias
+    });
+  }
+  catch(error) {
+    console.error('Error al obtener predicción diaria: ', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Error al obtener la predicción diaria',
+      detalles: error.message
+    });
+  }
 });
 
 // Iniciar servidor
