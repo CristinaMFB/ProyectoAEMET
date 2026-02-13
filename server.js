@@ -11,6 +11,7 @@ const obtenerMunicipios = require('./funciones/obtenerMunicipios');
 const obtenerPrediccionDiaria = require('./funciones/obtenerPrediccionDiaria');
 const calcularTemperaturaGeneral = require('./funciones/calcularTemperaturaGeneral');
 const calcularProbPrecipitacion = require('./funciones/calcularProbPrecipitacion');
+const calcularViento = require('./funciones/calcularViento');
 
 // Crear aplicación Express
 const app = express();
@@ -25,9 +26,9 @@ app.get('/', (req, res) => {
   res.json({
     mensaje: 'Bienvenido a la API Backend del proyecto de la AEMET de DWEC',
     endpoints: {
-      '/api/cp/:codigoPostal': 'Buscar un municipio por código postal',
       '/api/municipio/nombre/:nombre': 'Busca un municipio por su nombre',
-      '/api/provincia/:codigo/municipios': 'Obtiene los municipios de una provincia'
+      '/api/provincia/:codigo/municipios': 'Obtiene los municipios de una provincia',
+      '/api/prediccion/:idMunicipio': 'Obtiene la predicción diaria de un municipio'
     }
   });
 });
@@ -166,47 +167,6 @@ app.get('/api/posts', async (req, res) => {
 });
 */
 
-/*ENDPOINT para la búsqueda por código postal*/
-app.get('/api/cp/:codigoPostal', async (req, res) => {
-  try {
-    const codigoPostal = req.params.codigoPostal;
-
-    //Obtener los municipios
-    const municipios = await obtenerMunicipios();
-
-    //Buscar el municipio cuyo id_old coincida con el código postal
-    const municipioEncontrado = municipios.find(m => String(m.id_old) === codigoPostal);
-
-    if (!municipioEncontrado) {
-      return res.status(404).json({
-        success: false,
-        error: 'No existe ningún municipio con ese código postal'
-      });
-    }
-
-    //Solo necesito el id del municipio y el nombre
-    //El id tiene la forma "idXXXXX", pero solo quiero "XXXXX" ya que es lo que usa la API para hacer la búsqueda
-    //de la predicción por dias y por horas de cada municipio
-    res.json({
-      success: true,
-      municipio: {
-        id: municipioEncontrado.id.replace("id", ""),
-        nombre: municipioEncontrado.nombre
-      }
-    });
-
-  }
-  catch (error) {
-    console.error('Error al buscar por código postal: ', error.message);
-    res.status(500).json({
-      success: false,
-      error: 'Error al buscar el municipio por código postal',
-      detalles: error.message
-    });
-  }
-});
-
-
 //ENDPOINT: Buscar municipio por nombre
 app.get('/api/municipio/nombre/:nombre', async (req, res) => {
   try {
@@ -291,13 +251,6 @@ app.get('/api/provincia/:codigo/municipios', async (req, res) => {
   }
 });
 
-// Ruta para manejar endpoints no encontrados
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Endpoint no encontrado'
-  });
-});
 
 //ENDPOINT: Predicción diaria
 app.get('/api/prediccion/:idMunicipio', async (req, res) => {
@@ -348,6 +301,14 @@ app.get('/api/prediccion/:idMunicipio', async (req, res) => {
       detalles: error.message
     });
   }
+});
+
+// Ruta para manejar endpoints no encontrados
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'Endpoint no encontrado'
+  });
 });
 
 // Iniciar servidor
