@@ -31,7 +31,7 @@ export function BuscadorDesplegables() {
 
         //Obtener los municipios de esa provincia
         fetch(`http://localhost:3000/api/provincia/${provinciaSeleccionada}/municipios`)
-            .then((res => res.json)) 
+            .then((res) => res.json())
             .then((data) => {
                 if(data.success) {
                     //Guardar los municipios
@@ -67,7 +67,7 @@ export function BuscadorDesplegables() {
                 <option value="">Seleccione el municipio</option>
                 {/*Rellenar el desplegable con los municipios*/}
                 {listaMunicipios.map((mun) => (
-                    <option key={mun.id} vale={mun.id}>{mun.nombre}</option>
+                    <option key={mun.id} value={mun.id}>{mun.nombre}</option>
                 ))}
             </select>
             <button onClick={busqueda}>Aceptar</button>

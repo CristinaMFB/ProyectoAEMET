@@ -3,7 +3,7 @@ function calcularViento(viento) {
     if(!viento || viento.length === 0) {
         return {
             direccion: "",
-            velocidad: ""
+            velocidad: 0
         };
     }
 
@@ -12,8 +12,8 @@ function calcularViento(viento) {
 
     if(vientoGeneral) {
         return {
-            direccion: vientoGeneral.direccion || "",
-            velocidad: vientoGeneral.velocidad || ""
+            direccion: vientoGeneral.direccion ?? "",
+            velocidad: vientoGeneral.velocidad ?? 0
         };
     }
 
@@ -21,8 +21,8 @@ function calcularViento(viento) {
     const vientoFinal = viento[0];
     
     return {
-        direccion: vientoFinal.direccion || "",
-        velocidad: vientoFinal.velocidad || ""
+        direccion: vientoFinal.direccion ?? "",
+        velocidad: vientoFinal.velocidad ?? 0
     };
 }
 
