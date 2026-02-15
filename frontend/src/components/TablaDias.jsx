@@ -1,7 +1,17 @@
 import { IconosDescripcion } from "./IconosDescripcion";
 import { FormatearFecha } from "./FormatearFecha";
+import { Link } from "react-router-dom";
 
-export function TablaDias({ dias }) {
+export function TablaDias({ dias, horas, idMunicipio}) {
+
+    //Función para saber si un día tiene predicción horaria, ya que no todos los días de la tabla aparecen en la predicción horaria (solo los primeros días)
+    function tienePredHoras(fechaDia) {
+        if(!horas) return false;
+        //Fecha únicamente en formato XXXX-XX-XX
+        const fechaSinHora = fechaDia.split("T")[0];
+        return horas.some(h => h.fecha .split("T")[0] === fechaSinHora);
+    }
+
     return (
         <table className="tabla-prediccion">
             <tbody>
@@ -51,7 +61,20 @@ export function TablaDias({ dias }) {
                         </td>
                     ))}
                 </tr>
+                <tr>
+                    <td className="encabezado">Predicción por horas</td>
+                    {dias.map((d, index) => (
+                        <td key={index} className="botones">
+                            {tienePredHoras(d.fecha) ? (
+                                <Link to={`/prediccion-horas?id=${idMunicipio}&dia=${d.fecha}`} className="botonHoras">Mostrar</Link>
+                                ) : (
+                                    <span className="sin-horas"></span>
+                                )
+                            }
+                        </td>
+                    ))}
+                </tr>
             </tbody>
         </table>
-    )
+    );
 }

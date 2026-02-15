@@ -3,12 +3,14 @@ import { useSearchParams } from "react-router-dom";
 import { TablaDias } from "../components/TablaDias";
 
 export function PrediccionDias() {
-  //Uso useSearchParams para leer los arámetros que tiene la URL para obtener el valor del id
+  //Obtener el id del municipio de la URL
   const [searchParams] = useSearchParams();
   const idMunicipio = searchParams.get("id");
 
-  //UseState para guardar el array de predicción diaria
+  //UseState
   const [prediccionDiaria, setPrediccionDiaria] = useState(null);
+  const [prediccionHoras, setPrediccionHoras] = useState(null);
+
 
   //UseState para controlar la carga y los errores
   const [cargando, setCargando] = useState(true);
@@ -23,34 +25,43 @@ export function PrediccionDias() {
     setCargando(true);
     setError("");
 
+    //Cargar predicción diaria
     fetch(`http://localhost:3000/api/prediccion/${idMunicipio}`)
-      .then((res) => res.json())
-      .then((data) => {
+      .then(res => res.json())
+      .then(data => {
         //Si success=true, se guarda el array de días con los datos de las predicciones en el estado "prediccion"
         if(data.success) {
           setPrediccionDiaria(data.dias);
         }
         //Si no, mostrar mensaje de error
         else {
-          setError("No se ha podido obtener la predicción meteorológica");
+          throw new Error("Error en la predicción diaria");
+        }
+        ////Cargar predicción horaria (para ver los días que aparecen)
+        return fetch(`http://localhost:3000/api/prediccion-horas/${idMunicipio}`);
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.success) {
+          setPrediccionHoras(data.dias);
+        }
+        else {
+          setPrediccionHoras([]);
         }
       })
-
       .catch(() => {
         //Si hay error de red o el servidor n responde
         setError("Error al conectar con el servidor");
       })
-
-      //Ya se quita el cargando
       .finally(() => { 
-        setCargando(false); 
+          setCargando(false); 
       });
-
+        
 //Se ejecuta cuando cambia idMunicipio
   }, [idMunicipio]);
 
   return (
-    <div>
+    <div className="contenedor-prediccion-dias">
       <h1>Predicción de la semana</h1>
 
       {cargando && 
@@ -60,7 +71,7 @@ export function PrediccionDias() {
 
       {/*TABLA CON LA PREDICCIÓN DIARIA*/}
       {prediccionDiaria && (
-        <TablaDias dias={prediccionDiaria} />
+        <TablaDias dias={prediccionDiaria} horas={prediccionHoras} idMunicipio={idMunicipio} />
       )}
     </div>
   );

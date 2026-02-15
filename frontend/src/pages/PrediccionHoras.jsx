@@ -1,22 +1,24 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { TablaHoras } from "../components/tablaHoras";
+import { TablaHoras } from "../components/TablaHoras";
 import { FormatearFecha } from "../components/FormatearFecha";
 
 export function PrediccionHoras() {
 
   //Obtener el id del municipio de la URL
-  const [seachParams] = useSearchParams();
-  const idMunicipio = seachParams.get("id");
+  const [searchParams] = useSearchParams();
+  const idMunicipio = searchParams.get("id");
+  const diaSeleccionado = searchParams.get("dia");
 
   //useState
   const [prediccionHoras, setPrediccionHoras] = useState(null);
+  const [horasDia, setHorasDia] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
   //Cargar predicción horaria al entrar en la página
   useEffect(() => {
-    if(!municipio) return;
+    if(!idMunicipio) return;
 
     setCargando(true);
     setError("");
@@ -24,32 +26,43 @@ export function PrediccionHoras() {
     fetch(`http://localhost:3000/api/prediccion-horas/${idMunicipio}`)
       .then(res => res.json())
       .then(data => {
-        if(data.success) {
-          setPrediccionHoras(data.dias);
+        if(!data.success) {
+          setError("No se ha podido obtener la predicción por horas");
+          return;
+        }
+
+        setPrediccionHoras(data.dias);
+        //Filtrar el día seleccionado
+        const diaEncontrado = data.dias.find(d => 
+          d.fecha.split("T")[0] === diaSeleccionado.split("T")[0]
+        );
+
+        if(!diaEncontrado) {
+          setError("No hay predicción horaria para este día");
         }
         else {
-          setError("No se ha podido obtener la predicción por horas");
+          setHorasDia(diaEncontrado.horas);
         }
       })
       .catch(() => setError("Error al conectar con el servidor"))
       .finally(() => setCargando(false));
 
-  }, [idMunicipio]);
+  }, [idMunicipio, diaSeleccionado]);
 
   return (
     <div>
       <h1>Predicción por horas</h1>
+       {diaSeleccionado && (
+        <h3>Día {FormatearFecha({fecha: diaSeleccionado})}</h3>
+      )}
       {cargando && 
         <p className="mensajes">Cargando</p>}
       {error &&
         <p className="error">{error}</p>}
-
-      {prediccionHoras && prediccionHoras.map((dia, index) => (
-        <div key={index} className="contenedor-tabla">
-          <h3>Día {FormatearFecha({fecha: dia.fecha})}</h3>
-          <TablaHoras listaHoras = {dia.horas}/>
-        </div>
-      ))}
+      
+      {horasDia && (
+        <TablaHoras listaHoras={horasDia} />
+      )}
     </div>
   );
 }

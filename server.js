@@ -12,6 +12,7 @@ const obtenerPrediccionDiaria = require('./funciones/obtenerPrediccionDiaria');
 const calcularTemperaturaGeneral = require('./funciones/calcularTemperaturaGeneral');
 const calcularProbPrecipitacion = require('./funciones/calcularProbPrecipitacion');
 const calcularViento = require('./funciones/calcularViento');
+const combinarHoras = require('./funciones/combinarHoras');
 
 // Crear aplicación Express
 const app = express();
@@ -203,26 +204,8 @@ app.get('/api/prediccion-horas/:idMunicipio', async (req, res) => {
     //Cada día tiene un bloque de horas
     const dias = prediccion.prediccion.dia;
 
-    const horasFinal = dias.map(dia => {
-      //Formateo de la fecha para obtener XXXX-XX-XX. La AEMET devuelve la fecha así: 2026-02-13T20:11:12. Así que hay que dividir por la letra T y quedarnos solo con la parte de la izquierda que es la de la fecha
-      const fecha = dia.fecha.split("T")[0];
-      const horas = dia.estadoCielo.map(h => {
-        const periodo = h.periodo;
-        
-        return {
-          fecha,
-          hora: periodo,
-          estadoCielo: h.descripcion || "",
-          temperatura: dia.temperatura.find(t => t.periodo === periodo)?.value ?? "",
-          precipitacion: dia.precipitacion.find(p => periodo === periodo)?.value ?? "",
-          vientoDireccion: dia.vientoAndRachaMax.find(v => v.periodo === periodo)?.direccion?.[0] ?? "",
-          vientoVelocidad: dia.vientoAndRachaMax.fing(v => v.periodo === periodo)?.velocidad?.[0] ?? 0
-        };
-      });
-
-      return {fecha, horas};
-    });
-
+    const horasFinal = dias.map( dia => combinarHoras(dia));
+    
     res.json({
       success: true,
       municipio: prediccion.nombre,
