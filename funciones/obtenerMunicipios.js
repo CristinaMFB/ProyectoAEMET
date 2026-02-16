@@ -21,7 +21,10 @@ async function obtenerMunicipios() {
     }
 
     //Devolver el array de municipios
-    return await response2.json();
+    //Resolver problema con las tildes en el desplegable
+    const buffer = await response2.arrayBuffer(); 
+    const texto = new TextDecoder("iso-8859-1").decode(buffer); 
+    return JSON.parse(texto);
   }
   catch (error) {
     console.error("Error en función obtenerMunicipios: ", error.message);

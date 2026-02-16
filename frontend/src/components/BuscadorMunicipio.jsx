@@ -39,8 +39,8 @@ export function BuscadorMunicipio() {
 
     return (
         <div>
-            <h3>Búsqueda manual por municipio</h3>
             <input type="text" placeholder="Introduzca un municipio" value={municipioIntroducido} onChange={(e) => setMunicipioIntroducido(e.target.value)}/>
+            <br/><br/>
             <button onClick={busqueda}>Aceptar</button>
         </div>
     );

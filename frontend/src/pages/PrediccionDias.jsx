@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { TablaDias } from "../components/TablaDias";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 
 export function PrediccionDias() {
   //Obtener el id del municipio de la URL
@@ -19,7 +21,7 @@ export function PrediccionDias() {
   //La primera vez que se carga la página o cada vez que se cambie el municipio
   useEffect(() => {
     //Si no hay id en la URL no se hace nada
-    if(!idMunicipio) return;
+    if (!idMunicipio) return;
 
     //Primero limpio los errores y pongo true en setCargando para indicar que está cargando
     setCargando(true);
@@ -30,7 +32,7 @@ export function PrediccionDias() {
       .then(res => res.json())
       .then(data => {
         //Si success=true, se guarda el array de días con los datos de las predicciones en el estado "prediccion"
-        if(data.success) {
+        if (data.success) {
           setPrediccionDiaria(data.dias);
         }
         //Si no, mostrar mensaje de error
@@ -42,7 +44,7 @@ export function PrediccionDias() {
       })
       .then(res => res.json())
       .then(data => {
-        if(data.success) {
+        if (data.success) {
           setPrediccionHoras(data.dias);
         }
         else {
@@ -53,26 +55,36 @@ export function PrediccionDias() {
         //Si hay error de red o el servidor n responde
         setError("Error al conectar con el servidor");
       })
-      .finally(() => { 
-          setCargando(false); 
+      .finally(() => {
+        setCargando(false);
       });
-        
-//Se ejecuta cuando cambia idMunicipio
+
+    //Se ejecuta cuando cambia idMunicipio
   }, [idMunicipio]);
 
   return (
-    <div className="contenedor-prediccion-dias">
-      <h1>Predicción de la semana</h1>
+    <>
+      <Header />
+      <div className="contenedor-prediccion-dias">
+        <h1>Predicción de la semana</h1>
 
-      {cargando && 
-        <p className="mensajes">Cargando...</p>}
-      {error &&
-        <p className="error">{error}</p>}
+        {cargando &&
+          <p className="mensajes">Cargando...</p>}
+        {error &&
+          <p className="error">{error}</p>}
 
-      {/*TABLA CON LA PREDICCIÓN DIARIA*/}
-      {prediccionDiaria && (
-        <TablaDias dias={prediccionDiaria} horas={prediccionHoras} idMunicipio={idMunicipio} />
-      )}
-    </div>
+        {/*TABLA CON LA PREDICCIÓN DIARIA*/}
+        {prediccionDiaria && (
+          <>
+            <TablaDias dias={prediccionDiaria} horas={prediccionHoras} idMunicipio={idMunicipio} />
+            
+            <div className="volver">
+              <Link to="/" className="boton-volver">Volver</Link>
+            </div>
+          </>
+        )}
+      </div>
+      <Footer />
+    </>
   );
 }

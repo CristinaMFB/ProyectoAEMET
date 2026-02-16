@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { TablaHoras } from "../components/TablaHoras";
 import { FormatearFecha } from "../components/FormatearFecha";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 
 export function PrediccionHoras() {
 
@@ -18,7 +20,7 @@ export function PrediccionHoras() {
 
   //Cargar predicción horaria al entrar en la página
   useEffect(() => {
-    if(!idMunicipio) return;
+    if (!idMunicipio) return;
 
     setCargando(true);
     setError("");
@@ -26,18 +28,18 @@ export function PrediccionHoras() {
     fetch(`http://localhost:3000/api/prediccion-horas/${idMunicipio}`)
       .then(res => res.json())
       .then(data => {
-        if(!data.success) {
+        if (!data.success) {
           setError("No se ha podido obtener la predicción por horas");
           return;
         }
 
         setPrediccionHoras(data.dias);
         //Filtrar el día seleccionado
-        const diaEncontrado = data.dias.find(d => 
+        const diaEncontrado = data.dias.find(d =>
           d.fecha.split("T")[0] === diaSeleccionado.split("T")[0]
         );
 
-        if(!diaEncontrado) {
+        if (!diaEncontrado) {
           setError("No hay predicción horaria para este día");
         }
         else {
@@ -50,19 +52,27 @@ export function PrediccionHoras() {
   }, [idMunicipio, diaSeleccionado]);
 
   return (
-    <div>
-      <h1>Predicción por horas</h1>
-       {diaSeleccionado && (
-        <h3>Día {FormatearFecha({fecha: diaSeleccionado})}</h3>
-      )}
-      {cargando && 
-        <p className="mensajes">Cargando</p>}
-      {error &&
-        <p className="error">{error}</p>}
-      
-      {horasDia && (
-        <TablaHoras listaHoras={horasDia} />
-      )}
-    </div>
+    <>
+      <Header />
+      <div>
+        <h1>Predicción por horas</h1>
+        {diaSeleccionado && (
+          <h3>Día {FormatearFecha({ fecha: diaSeleccionado })}</h3>
+        )}
+        {cargando &&
+          <p className="mensajes">Cargando</p>}
+        {error &&
+          <p className="error">{error}</p>}
+
+        {horasDia && (
+          <>
+            <TablaHoras listaHoras={horasDia} />
+            <Link to={`/prediccion-dias?id=${idMunicipio}`} className="boton-volver">Volver</Link>
+          </>
+        )}
+      </div>
+      <Footer />
+    </>
+
   );
 }

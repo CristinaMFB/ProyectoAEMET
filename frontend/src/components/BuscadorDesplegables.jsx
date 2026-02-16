@@ -55,7 +55,6 @@ export function BuscadorDesplegables() {
 
     return (
         <div>
-            <h3>Búsqueda por provincia y municipio</h3>
             <select value={provinciaSeleccionada} onChange={(e) => setProvinciaSeleccionada(e.target.value)}>
                 <option value="">Seleccione la provincia</option>
                 {/*Rellenar el desplegable con las provincias*/}
@@ -63,13 +62,16 @@ export function BuscadorDesplegables() {
                     <option key={prov.codigo} value={prov.codigo}>{prov.nombre}</option>
                 ))}
             </select>
+            <br/><br/>
             <select value={municipioSeleccionado} onChange={(e) => setMunicipioSeleccionado(e.target.value)}>
                 <option value="">Seleccione el municipio</option>
                 {/*Rellenar el desplegable con los municipios*/}
                 {listaMunicipios.map((mun) => (
                     <option key={mun.id} value={mun.id}>{mun.nombre}</option>
                 ))}
+                
             </select>
+            <br/><br/>
             <button onClick={busqueda}>Aceptar</button>
         </div>
     );

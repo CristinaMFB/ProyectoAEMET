@@ -16,7 +16,7 @@ export function TablaDias({ dias, horas, idMunicipio}) {
         <table className="tabla-prediccion">
             <tbody>
                 <tr>
-                    <td className="encabezado-vacio"></td>
+                    <td className="encabezado"></td>
                     {dias.map((dia, index) => (
                         <td key={index} className="fecha">
                             <FormatearFecha fecha={dia.fecha} />
@@ -24,13 +24,13 @@ export function TablaDias({ dias, horas, idMunicipio}) {
                     ))}
                 </tr>
                 <tr>
-                    <td className="encabezado-vacio"></td>
+                    <td className="encabezado"></td>
                     {dias.map((dia, index) => (
                         <td key={index} className="temp-dia">{dia.tempGeneral !== "" ? `${dia.tempGeneral}ºC` : ""}</td>
                     ))}
                 </tr>
                 <tr>
-                    <td className="encabezado-vacio"></td>
+                    <td className="encabezado"></td>
                     {dias.map((dia, index) => (
                         <td key={index} className="icono">
                             <IconosDescripcion descripcion={dia.estadoCielo} />
@@ -64,11 +64,11 @@ export function TablaDias({ dias, horas, idMunicipio}) {
                 <tr>
                     <td className="encabezado">Predicción por horas</td>
                     {dias.map((d, index) => (
-                        <td key={index} className="botones">
+                        <td key={index}>
                             {tienePredHoras(d.fecha) ? (
                                 <Link to={`/prediccion-horas?id=${idMunicipio}&dia=${d.fecha}`} className="botonHoras">Mostrar</Link>
                                 ) : (
-                                    <span className="sin-horas"></span>
+                                    <span className=""></span>
                                 )
                             }
                         </td>
