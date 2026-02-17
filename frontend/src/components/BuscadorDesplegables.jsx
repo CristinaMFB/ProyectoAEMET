@@ -12,19 +12,23 @@ export function BuscadorDesplegables() {
     const [listaProvincias, setListaProvincias] = useState([]);
     const [listaMunicipios, setListaMunicipios] = useState([]);
 
+    const [error, setError] = useState("");
+
     //Hook de React Router
     const navigate = useNavigate();
 
     //Cargar las provincias desde el archivo provincias.json
     useEffect(() => {
         import("../provincias.json")
-        .then((datosProvincias) => {setListaProvincias(datosProvincias.default);})
-        .catch(() => {alert("Error al cargar las provincias");});
+            .then((datosProvincias) => { setListaProvincias(datosProvincias.default); })
+            .catch(() => { 
+                setError("Error al cargar las pronvincias");
+            });
     }, []);
 
     //Cargar los municipios cuando cambia la provincia seleccionada
     useEffect(() => {
-        if(!provinciaSeleccionada) {
+        if (!provinciaSeleccionada) {
             setListaMunicipios([]);
             return;
         }
@@ -33,20 +37,24 @@ export function BuscadorDesplegables() {
         fetch(`http://localhost:3000/api/provincia/${provinciaSeleccionada}/municipios`)
             .then((res) => res.json())
             .then((data) => {
-                if(data.success) {
-                    //Guardar los municipios
-                    setListaMunicipios(data.municipios);
+                if (!data.success) {
+                    setError(data.error || "No se han podido cargar los municipios");
+                    setListaMunicipios([]);
+                    return;
                 }
-                else {
-                    alert("No se han podido cargar los municipios");
-                }
-            });
+                //Guardar los municipios
+                setListaMunicipios(data.municipios);
+            })
+            .catch(() => {
+                setError("Error al conectar con el servidor");
+
+            })
     }, [provinciaSeleccionada]);
 
     //Función cuando el usuario pulsa "Aceptar"
     function busqueda() {
-        if(!municipioSeleccionado) {
-            alert("Debe seleccionar un municipio");
+        if (!municipioSeleccionado) {
+            setError("Debe seleccionar un municipio");
             return;
         }
         //Ir a la página de predicción por días enviando el id del municipio
@@ -55,6 +63,7 @@ export function BuscadorDesplegables() {
 
     return (
         <div>
+            {error && <p className="error">{error}</p>}
             <select value={provinciaSeleccionada} onChange={(e) => setProvinciaSeleccionada(e.target.value)}>
                 <option value="">Seleccione la provincia</option>
                 {/*Rellenar el desplegable con las provincias*/}
@@ -62,16 +71,16 @@ export function BuscadorDesplegables() {
                     <option key={prov.codigo} value={prov.codigo}>{prov.nombre}</option>
                 ))}
             </select>
-            <br/><br/>
+            <br /><br />
             <select value={municipioSeleccionado} onChange={(e) => setMunicipioSeleccionado(e.target.value)}>
                 <option value="">Seleccione el municipio</option>
                 {/*Rellenar el desplegable con los municipios*/}
                 {listaMunicipios.map((mun) => (
                     <option key={mun.id} value={mun.id}>{mun.nombre}</option>
                 ))}
-                
+
             </select>
-            <br/><br/>
+            <br /><br />
             <button onClick={busqueda}>Aceptar</button>
         </div>
     );

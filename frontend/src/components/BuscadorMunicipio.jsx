@@ -5,6 +5,9 @@ export function BuscadorMunicipio() {
     //UseState para guardar lo que se escriba en el input
     const [municipioIntroducido, setMunicipioIntroducido] = useState("");
 
+    //useState errores
+    const [error, setError] = useState("");
+
     //Hook de React Router
     const navigate = useNavigate();
 
@@ -12,9 +15,10 @@ export function BuscadorMunicipio() {
     async function busqueda() {
         //Si no ha escrito nada, mostrar un mensaje
         if(!municipioIntroducido) {
-            alert("Introduce un nombre de municipio");
+            setError("Introduce un nombre de municipio");
             return;
         }
+        setError("");
 
         try {
             const response = await fetch(`http://localhost:3000/api/municipio/nombre/${municipioIntroducido}`);
@@ -22,7 +26,7 @@ export function BuscadorMunicipio() {
             const datos = await response.json();
 
             if(!datos.success) {
-                alert(datos.error || "No se ha encontrado el municipio");
+                setError(datos.error || "No se ha encontrado el municipio");
                 return;
             }
 
@@ -33,12 +37,13 @@ export function BuscadorMunicipio() {
             navigate(`/prediccion-dias?id=${idMunicipio}`);
         }
         catch (error) {
-            alert("Error al conectar con el servidor");
+            setError("Error al conectar con el servidor");
         }
     }
 
     return (
         <div>
+            {error && <p className="error">{error}</p>}
             <input type="text" placeholder="Introduzca un municipio" value={municipioIntroducido} onChange={(e) => setMunicipioIntroducido(e.target.value)}/>
             <br/><br/>
             <button onClick={busqueda}>Aceptar</button>

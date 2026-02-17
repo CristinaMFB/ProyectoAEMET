@@ -29,7 +29,7 @@ export function PrediccionHoras() {
       .then(res => res.json())
       .then(data => {
         if (!data.success) {
-          setError("No se ha podido obtener la predicción por horas");
+          setError(data.error || "No se ha podido obtener la predicción por horas");
           return;
         }
 
@@ -46,7 +46,7 @@ export function PrediccionHoras() {
           setHorasDia(diaEncontrado.horas);
         }
       })
-      .catch(() => setError("Error al conectar con el servidor"))
+      .catch((error) => setError(error.message || "Error al conectar con el servidor"))
       .finally(() => setCargando(false));
 
   }, [idMunicipio, diaSeleccionado]);

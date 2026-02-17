@@ -31,14 +31,12 @@ export function PrediccionDias() {
     fetch(`http://localhost:3000/api/prediccion/${idMunicipio}`)
       .then(res => res.json())
       .then(data => {
-        //Si success=true, se guarda el array de días con los datos de las predicciones en el estado "prediccion"
-        if (data.success) {
-          setPrediccionDiaria(data.dias);
+        
+        if (!data.success) {
+          set(data.error || "Error en la predicción diaria");
+          return
         }
-        //Si no, mostrar mensaje de error
-        else {
-          throw new Error("Error en la predicción diaria");
-        }
+        setPrediccionDiaria(data.dias);
         ////Cargar predicción horaria (para ver los días que aparecen)
         return fetch(`http://localhost:3000/api/prediccion-horas/${idMunicipio}`);
       })
@@ -51,9 +49,8 @@ export function PrediccionDias() {
           setPrediccionHoras([]);
         }
       })
-      .catch(() => {
-        //Si hay error de red o el servidor n responde
-        setError("Error al conectar con el servidor");
+      .catch((error) => {
+        setError(error.message || "Error al conectar con el servidor");
       })
       .finally(() => {
         setCargando(false);
