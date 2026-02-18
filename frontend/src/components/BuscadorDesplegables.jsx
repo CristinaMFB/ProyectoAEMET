@@ -64,7 +64,7 @@ export function BuscadorDesplegables() {
     return (
         <div>
             {error && <p className="error">{error}</p>}
-            <select value={provinciaSeleccionada} onChange={(e) => setProvinciaSeleccionada(e.target.value)}>
+            <select className="select-buscador" value={provinciaSeleccionada} onChange={(e) => setProvinciaSeleccionada(e.target.value)}>
                 <option value="">Seleccione la provincia</option>
                 {/*Rellenar el desplegable con las provincias*/}
                 {listaProvincias.map((prov) => (
@@ -72,7 +72,7 @@ export function BuscadorDesplegables() {
                 ))}
             </select>
             <br /><br />
-            <select value={municipioSeleccionado} onChange={(e) => setMunicipioSeleccionado(e.target.value)}>
+            <select className="select-buscador" value={municipioSeleccionado} onChange={(e) => setMunicipioSeleccionado(e.target.value)}>
                 <option value="">Seleccione el municipio</option>
                 {/*Rellenar el desplegable con los municipios*/}
                 {listaMunicipios.map((mun) => (
@@ -81,7 +81,7 @@ export function BuscadorDesplegables() {
 
             </select>
             <br /><br />
-            <button onClick={busqueda}>Aceptar</button>
+            <button className="boton-buscador" onClick={busqueda}>Aceptar</button>
         </div>
     );
 }

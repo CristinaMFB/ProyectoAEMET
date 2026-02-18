@@ -115,7 +115,7 @@ body {
 }
 
 .contenedor-busqueda {
-  background: #ffffff;
+  background: #aec7da;
   padding: 25px;
   border-radius: 12px;
   border: 1px solid #d9e1ec;
@@ -125,8 +125,45 @@ body {
 .contenedor-busqueda h3 {
   font-size: 1.4rem;
   margin-bottom: 20px;
-  color: #4a6073;
+  color: #224f77;
 }
+
+.input-buscador {
+  padding: 8px 5px;
+  font-size: 1rem;
+  border: 1px solid rgb(97, 97, 97);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.input-buscador:focus {
+  background-color: rgb(216, 216, 216);
+}
+
+.select-buscador {
+  padding: 8px 5px;
+  font-size: 1rem;
+  border: 1px solid rgb(97, 97, 97);
+  border-radius: 8px;
+}
+
+.select-buscador:focus {
+  background-color: rgb(216, 216, 216);
+}
+
+.boton-buscador {
+  padding: 5px 8px;
+  color: white;
+  background-color: #285371;
+  border: 1px solid #12344c;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.boton-buscador:hover { 
+  background-color: rgb(54, 111, 152); 
+}
+
 .contenedor-inicio,
 .contenedor-prediccion-dias,
 .contenedor-prediccion-horas {

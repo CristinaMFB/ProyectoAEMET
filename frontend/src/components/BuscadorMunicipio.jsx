@@ -44,9 +44,9 @@ export function BuscadorMunicipio() {
     return (
         <div>
             {error && <p className="error">{error}</p>}
-            <input type="text" placeholder="Introduzca un municipio" value={municipioIntroducido} onChange={(e) => setMunicipioIntroducido(e.target.value)}/>
+            <input type="text" className="input-buscador" placeholder="Introduzca un municipio" value={municipioIntroducido} onChange={(e) => setMunicipioIntroducido(e.target.value)}/>
             <br/><br/>
-            <button onClick={busqueda}>Aceptar</button>
+            <button className="boton-buscador" onClick={busqueda}>Aceptar</button>
         </div>
     );
 }
